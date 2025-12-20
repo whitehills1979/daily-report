@@ -119,6 +119,45 @@ npm run prisma:generate
 npm run prisma:studio
 ```
 
+## デプロイ
+
+### ローカルからのデプロイ
+
+```bash
+# 初回セットアップ
+make gcloud-auth
+make gcloud-configure-docker
+
+# デプロイ（品質チェック + ビルド + デプロイ）
+make deploy
+
+# ログ確認
+make logs
+
+# サービスURL取得
+make url
+```
+
+### Makefileコマンド
+
+```bash
+make help              # コマンド一覧を表示
+make deploy            # フルデプロイ（品質チェック付き）
+make deploy-force      # 強制デプロイ（品質チェックなし）
+make docker-build      # Dockerイメージビルド
+make docker-run        # ローカルでDockerコンテナ起動
+make logs              # Cloud Runログ表示
+make logs-tail         # Cloud Runログをリアルタイム表示
+make status            # サービスステータス確認
+```
+
+詳細は [doc/DEPLOYMENT.md](./doc/DEPLOYMENT.md) を参照してください。
+
+### CI/CD
+
+- **CI**: Pull Request時に自動的に品質チェックとビルドを実行
+- **CD**: main/masterブランチへのpush時に自動的にCloud Runへデプロイ
+
 ## ドキュメント
 
 - [CLAUDE.md](./CLAUDE.md) - プロジェクト要件定義
@@ -128,6 +167,7 @@ npm run prisma:studio
 - [doc/TESTING.md](./doc/TESTING.md) - テスト仕様書
 - [doc/TEST_SPECIFICATION.md](./doc/TEST_SPECIFICATION.md) - テスト計画
 - [doc/GIT_HOOKS.md](./doc/GIT_HOOKS.md) - Git Hooks 設定
+- [doc/DEPLOYMENT.md](./doc/DEPLOYMENT.md) - デプロイメントガイド
 
 ## プロジェクト構造
 
