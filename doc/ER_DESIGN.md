@@ -12,6 +12,7 @@ erDiagram
         int id PK
         string name "氏名"
         string email "メールアドレス"
+        string password "パスワード(ハッシュ化)"
         string role "役割(sales/manager)"
         string department "部署"
         datetime created_at
@@ -66,15 +67,16 @@ erDiagram
 
 ### users（営業マスタ）
 
-| カラム名   | 型                       | 制約             | 説明           |
-| ---------- | ------------------------ | ---------------- | -------------- |
-| id         | INT                      | PRIMARY KEY      | ユーザーID     |
-| name       | VARCHAR(100)             | NOT NULL         | 氏名           |
-| email      | VARCHAR(255)             | UNIQUE, NOT NULL | メールアドレス |
-| role       | ENUM('sales', 'manager') | NOT NULL         | 役割           |
-| department | VARCHAR(100)             |                  | 部署           |
-| created_at | TIMESTAMP                |                  | 作成日時       |
-| updated_at | TIMESTAMP                |                  | 更新日時       |
+| カラム名   | 型                       | 制約             | 説明                                  |
+| ---------- | ------------------------ | ---------------- | ------------------------------------- |
+| id         | INT                      | PRIMARY KEY      | ユーザーID                            |
+| name       | VARCHAR(100)             | NOT NULL         | 氏名                                  |
+| email      | VARCHAR(255)             | UNIQUE, NOT NULL | メールアドレス                        |
+| password   | VARCHAR(255)             | NOT NULL         | パスワード（bcrypt/Argon2ハッシュ値） |
+| role       | ENUM('sales', 'manager') | NOT NULL         | 役割                                  |
+| department | VARCHAR(100)             |                  | 部署                                  |
+| created_at | TIMESTAMP                |                  | 作成日時                              |
+| updated_at | TIMESTAMP                |                  | 更新日時                              |
 
 ### customers（顧客マスタ）
 

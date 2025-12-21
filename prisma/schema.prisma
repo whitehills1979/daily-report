@@ -1,0 +1,119 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ユーザー（営業・上長）
+model User {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(100)
+  email      String   @unique @db.VarChar(255)
+  password   String   @db.VarChar(255) // bcrypt/Argon2ハッシュ値を保存
+  role       Role
+  department String?  @db.VarChar(100)
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // リレーション
+  dailyReports DailyReport[]
+  comments     Comment[]
+
+  @@map("users")
+}
+
+// 顧客マスタ
+model Customer {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  companyName String   @map("company_name") @db.VarChar(200)
+  phone       String?  @db.VarChar(20)
+  email       String?  @db.VarChar(255)
+  address     String?  @db.Text
+  notes       String?  @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  // リレーション
+  visitRecords VisitRecord[]
+
+  @@map("customers")
+}
+
+// 日報
+model DailyReport {
+  id         Int      @id @default(autoincrement())
+  userId     Int      @map("user_id")
+  reportDate DateTime @map("report_date") @db.Date
+  problem    String?  @db.Text
+  plan       String?  @db.Text
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  // リレーション
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  visitRecords VisitRecord[]
+  comments     Comment[]
+
+  // 複合ユニーク制約: 1人の営業が同じ日に複数の日報を作成できないようにする
+  @@unique([userId, reportDate])
+  @@index([reportDate]) // 日付での検索用
+  @@index([userId]) // ユーザーごとの日報取得用
+  @@map("daily_reports")
+}
+
+// 訪問記録
+model VisitRecord {
+  id              Int       @id @default(autoincrement())
+  dailyReportId   Int       @map("daily_report_id")
+  customerId      Int       @map("customer_id")
+  visitContent    String    @map("visit_content") @db.Text
+  visitTime       DateTime? @map("visit_time") @db.Time
+  durationMinutes Int?      @map("duration_minutes")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // リレーション
+  dailyReport DailyReport @relation(fields: [dailyReportId], references: [id], onDelete: Cascade)
+  customer    Customer    @relation(fields: [customerId], references: [id], onDelete: Restrict)
+
+  @@index([customerId]) // 顧客ごとの訪問履歴取得用
+  @@index([dailyReportId]) // 日報ごとの訪問記録取得用
+  @@map("visit_records")
+}
+
+// コメント
+model Comment {
+  id            Int         @id @default(autoincrement())
+  dailyReportId Int         @map("daily_report_id")
+  userId        Int         @map("user_id")
+  commentType   CommentType @map("comment_type")
+  content       String      @db.Text
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  // リレーション
+  dailyReport DailyReport @relation(fields: [dailyReportId], references: [id], onDelete: Cascade)
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("comments")
+}
+
+// Enum: ユーザーの役割
+enum Role {
+  sales   // 営業
+  manager // 上長
+}
+
+// Enum: コメントの種別
+enum CommentType {
+  problem // 課題・相談へのコメント
+  plan    // 明日やることへのコメント
+  general // 一般コメント
+}
