@@ -15,7 +15,7 @@ model User {
   id         Int      @id @default(autoincrement())
   name       String   @db.VarChar(100)
   email      String   @unique @db.VarChar(255)
-  password   String   @db.VarChar(255)
+  password   String   @db.VarChar(255) // bcrypt/Argon2ハッシュ値を保存
   role       Role
   department String?  @db.VarChar(100)
   createdAt  DateTime @default(now()) @map("created_at")
@@ -63,17 +63,19 @@ model DailyReport {
 
   // 複合ユニーク制約: 1人の営業が同じ日に複数の日報を作成できないようにする
   @@unique([userId, reportDate])
+  @@index([reportDate]) // 日付での検索用
+  @@index([userId]) // ユーザーごとの日報取得用
   @@map("daily_reports")
 }
 
 // 訪問記録
 model VisitRecord {
-  id              Int      @id @default(autoincrement())
-  dailyReportId   Int      @map("daily_report_id")
-  customerId      Int      @map("customer_id")
-  visitContent    String   @map("visit_content") @db.Text
-  visitTime       String?  @map("visit_time") @db.VarChar(5)
-  durationMinutes Int?     @map("duration_minutes")
+  id              Int       @id @default(autoincrement())
+  dailyReportId   Int       @map("daily_report_id")
+  customerId      Int       @map("customer_id")
+  visitContent    String    @map("visit_content") @db.Text
+  visitTime       DateTime? @map("visit_time") @db.Time
+  durationMinutes Int?      @map("duration_minutes")
   createdAt       DateTime @default(now()) @map("created_at")
   updatedAt       DateTime @updatedAt @map("updated_at")
 
@@ -81,6 +83,8 @@ model VisitRecord {
   dailyReport DailyReport @relation(fields: [dailyReportId], references: [id], onDelete: Cascade)
   customer    Customer    @relation(fields: [customerId], references: [id], onDelete: Restrict)
 
+  @@index([customerId]) // 顧客ごとの訪問履歴取得用
+  @@index([dailyReportId]) // 日報ごとの訪問記録取得用
   @@map("visit_records")
 }
 
