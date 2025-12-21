@@ -109,7 +109,64 @@ npm run test:coverage
 
 ## データベース
 
-### Prisma
+### 初回セットアップ
+
+#### 1. PostgreSQLの起動
+
+開発環境ではDocker Composeを使用してPostgreSQLを起動します。
+
+```bash
+# PostgreSQLコンテナの起動
+docker-compose up -d
+
+# コンテナの状態確認
+docker-compose ps
+```
+
+#### 2. 環境変数の設定
+
+`.env.example`をコピーして`.env`ファイルを作成します。
+
+```bash
+cp .env.example .env
+```
+
+デフォルトのデータベース接続文字列:
+
+```
+DATABASE_URL="postgresql://user:password@localhost:5432/daily_report?schema=public"
+```
+
+#### 3. マイグレーションの実行
+
+Prismaマイグレーションを実行してデータベーススキーマを作成します。
+
+```bash
+# 初回マイグレーション実行
+npx prisma migrate dev --name init
+
+# または、既存のマイグレーションを適用
+npx prisma migrate deploy
+```
+
+#### 4. シードデータの投入
+
+テスト用のシードデータを投入します。
+
+```bash
+# シードデータの投入
+npm run prisma:seed
+```
+
+シードデータには以下が含まれます：
+
+- **テストユーザー**:
+  - 営業: `sales@test.com` / `Test1234!`
+  - 上長: `manager@test.com` / `Test1234!`
+- **テスト顧客**: 4社
+- **サンプル日報**: 5件（上長コメント付き）
+
+### Prismaコマンド
 
 ```bash
 # Prisma Client の生成
@@ -117,6 +174,38 @@ npm run prisma:generate
 
 # Prisma Studio の起動（DB GUI）
 npm run prisma:studio
+
+# シードデータの投入
+npm run prisma:seed
+
+# マイグレーション実行
+npx prisma migrate dev
+```
+
+### データベースのリセット
+
+```bash
+# データベースを削除して再作成（開発環境のみ）
+npx prisma migrate reset
+
+# 上記のコマンドは以下を自動的に実行します:
+# 1. データベースの削除
+# 2. データベースの再作成
+# 3. すべてのマイグレーションの適用
+# 4. シードデータの投入
+```
+
+### PostgreSQLの停止・削除
+
+```bash
+# コンテナの停止
+docker-compose stop
+
+# コンテナの削除（データは保持）
+docker-compose down
+
+# コンテナとボリュームの削除（データも削除）
+docker-compose down -v
 ```
 
 ## デプロイ
