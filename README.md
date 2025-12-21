@@ -109,14 +109,90 @@ npm run test:coverage
 
 ## データベース
 
+### PostgreSQLのセットアップ
+
+#### PostgreSQLのインストール
+
+**macOS (Homebrew)**
+
+```bash
+# PostgreSQLのインストール
+brew install postgresql@15
+
+# PostgreSQLの起動
+brew services start postgresql@15
+```
+
+**Docker を使用する場合**
+
+```bash
+# PostgreSQLコンテナの起動
+docker run --name daily-report-db \
+  -e POSTGRES_USER=user \
+  -e POSTGRES_PASSWORD=password \
+  -e POSTGRES_DB=daily_report \
+  -p 5432:5432 \
+  -d postgres:15
+```
+
+#### データベースの作成
+
+PostgreSQLに接続してデータベースを作成します：
+
+```bash
+# PostgreSQLに接続
+psql postgres
+
+# データベースを作成
+CREATE DATABASE daily_report;
+
+# ユーザーを作成（必要に応じて）
+CREATE USER user WITH PASSWORD 'password';
+
+# 権限を付与
+GRANT ALL PRIVILEGES ON DATABASE daily_report TO user;
+
+# 接続を終了
+\q
+```
+
+### 環境変数の設定
+
+`.env.example` をコピーして `.env` ファイルを作成します：
+
+```bash
+cp .env.example .env
+```
+
+`.env` ファイルを編集して、データベース接続情報を設定します：
+
+```env
+DATABASE_URL="postgresql://user:password@localhost:5432/daily_report?schema=public"
+JWT_SECRET="your-secret-key-change-this-in-production"
+JWT_EXPIRES_IN="1h"
+NODE_ENV="development"
+```
+
 ### Prisma
 
 ```bash
 # Prisma Client の生成
 npm run prisma:generate
 
+# マイグレーション実行（初回セットアップ時）
+npx prisma migrate dev --name init
+
 # Prisma Studio の起動（DB GUI）
 npm run prisma:studio
+```
+
+### データベース接続確認
+
+データベース接続が正常に動作するか確認します：
+
+```bash
+# テストを実行
+npm run test:run
 ```
 
 ## デプロイ
