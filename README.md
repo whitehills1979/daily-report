@@ -111,7 +111,19 @@ npm run test:coverage
 
 ### PostgreSQLのセットアップ
 
-#### PostgreSQLのインストール
+#### 方法1: Docker Compose を使用する（推奨）
+
+開発環境ではDocker Composeを使用してPostgreSQLを起動します。
+
+```bash
+# PostgreSQLコンテナの起動
+docker-compose up -d
+
+# コンテナの状態確認
+docker-compose ps
+```
+
+#### 方法2: PostgreSQLを直接インストール
 
 **macOS (Homebrew)**
 
@@ -123,7 +135,7 @@ brew install postgresql@15
 brew services start postgresql@15
 ```
 
-**Docker を使用する場合**
+**Docker を使用する場合（docker-compose なし）**
 
 ```bash
 # PostgreSQLコンテナの起動
@@ -135,7 +147,7 @@ docker run --name daily-report-db \
   -d postgres:15
 ```
 
-#### データベースの作成
+#### データベースの作成（方法2の場合のみ）
 
 PostgreSQLに接続してデータベースを作成します：
 
@@ -173,7 +185,36 @@ JWT_EXPIRES_IN="1h"
 NODE_ENV="development"
 ```
 
-### Prisma
+### マイグレーションの実行
+
+Prismaマイグレーションを実行してデータベーススキーマを作成します。
+
+```bash
+# 初回マイグレーション実行
+npx prisma migrate dev --name init
+
+# または、既存のマイグレーションを適用
+npx prisma migrate deploy
+```
+
+### シードデータの投入
+
+テスト用のシードデータを投入します。
+
+```bash
+# シードデータの投入
+npm run prisma:seed
+```
+
+シードデータには以下が含まれます：
+
+- **テストユーザー**:
+  - 営業: `sales@test.com` / `Test1234!`
+  - 上長: `manager@test.com` / `Test1234!`
+- **テスト顧客**: 4社
+- **サンプル日報**: 5件（上長コメント付き）
+
+### Prismaコマンド
 
 ```bash
 # Prisma Client の生成
@@ -184,6 +225,40 @@ npx prisma migrate dev --name init
 
 # Prisma Studio の起動（DB GUI）
 npm run prisma:studio
+
+# シードデータの投入
+npm run prisma:seed
+
+# マイグレーション実行
+npx prisma migrate dev
+```
+
+### データベースのリセット
+
+```bash
+# データベースを削除して再作成（開発環境のみ）
+npx prisma migrate reset
+
+# 上記のコマンドは以下を自動的に実行します:
+# 1. データベースの削除
+# 2. データベースの再作成
+# 3. すべてのマイグレーションの適用
+# 4. シードデータの投入
+```
+
+### PostgreSQLの停止・削除
+
+**Docker Compose を使用している場合**
+
+```bash
+# コンテナの停止
+docker-compose stop
+
+# コンテナの削除（データは保持）
+docker-compose down
+
+# コンテナとボリュームの削除（データも削除）
+docker-compose down -v
 ```
 
 ### データベース接続確認
