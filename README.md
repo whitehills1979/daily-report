@@ -109,9 +109,9 @@ npm run test:coverage
 
 ## データベース
 
-### 初回セットアップ
+### PostgreSQLのセットアップ
 
-#### 1. PostgreSQLの起動
+#### 方法1: Docker Compose を使用する（推奨）
 
 開発環境ではDocker Composeを使用してPostgreSQLを起動します。
 
@@ -123,21 +123,69 @@ docker-compose up -d
 docker-compose ps
 ```
 
-#### 2. 環境変数の設定
+#### 方法2: PostgreSQLを直接インストール
 
-`.env.example`をコピーして`.env`ファイルを作成します。
+**macOS (Homebrew)**
+
+```bash
+# PostgreSQLのインストール
+brew install postgresql@15
+
+# PostgreSQLの起動
+brew services start postgresql@15
+```
+
+**Docker を使用する場合（docker-compose なし）**
+
+```bash
+# PostgreSQLコンテナの起動
+docker run --name daily-report-db \
+  -e POSTGRES_USER=user \
+  -e POSTGRES_PASSWORD=password \
+  -e POSTGRES_DB=daily_report \
+  -p 5432:5432 \
+  -d postgres:15
+```
+
+#### データベースの作成（方法2の場合のみ）
+
+PostgreSQLに接続してデータベースを作成します：
+
+```bash
+# PostgreSQLに接続
+psql postgres
+
+# データベースを作成
+CREATE DATABASE daily_report;
+
+# ユーザーを作成（必要に応じて）
+CREATE USER user WITH PASSWORD 'password';
+
+# 権限を付与
+GRANT ALL PRIVILEGES ON DATABASE daily_report TO user;
+
+# 接続を終了
+\q
+```
+
+### 環境変数の設定
+
+`.env.example` をコピーして `.env` ファイルを作成します：
 
 ```bash
 cp .env.example .env
 ```
 
-デフォルトのデータベース接続文字列:
+`.env` ファイルを編集して、データベース接続情報を設定します：
 
-```
+```env
 DATABASE_URL="postgresql://user:password@localhost:5432/daily_report?schema=public"
+JWT_SECRET="your-secret-key-change-this-in-production"
+JWT_EXPIRES_IN="1h"
+NODE_ENV="development"
 ```
 
-#### 3. マイグレーションの実行
+### マイグレーションの実行
 
 Prismaマイグレーションを実行してデータベーススキーマを作成します。
 
@@ -149,7 +197,7 @@ npx prisma migrate dev --name init
 npx prisma migrate deploy
 ```
 
-#### 4. シードデータの投入
+### シードデータの投入
 
 テスト用のシードデータを投入します。
 
@@ -171,6 +219,9 @@ npm run prisma:seed
 ```bash
 # Prisma Client の生成
 npm run prisma:generate
+
+# マイグレーション実行（初回セットアップ時）
+npx prisma migrate dev --name init
 
 # Prisma Studio の起動（DB GUI）
 npm run prisma:studio
@@ -197,6 +248,8 @@ npx prisma migrate reset
 
 ### PostgreSQLの停止・削除
 
+**Docker Compose を使用している場合**
+
 ```bash
 # コンテナの停止
 docker-compose stop
@@ -206,6 +259,15 @@ docker-compose down
 
 # コンテナとボリュームの削除（データも削除）
 docker-compose down -v
+```
+
+### データベース接続確認
+
+データベース接続が正常に動作するか確認します：
+
+```bash
+# テストを実行
+npm run test:run
 ```
 
 ## デプロイ
