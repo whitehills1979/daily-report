@@ -26,6 +26,42 @@ export function extractToken(request: NextRequest): string | null {
 }
 
 /**
+ * リクエストから認証ユーザー情報を取得する（例外スロー型）
+ * @param request - Next.jsのリクエストオブジェクト
+ * @returns JWTペイロード（認証ユーザー情報）
+ * @throws {ApiError} トークンが無効または存在しない場合
+ */
+export function requireAuth(request: NextRequest): JWTPayload {
+  const token = extractToken(request)
+
+  if (!token) {
+    throw ApiError.unauthorized('認証が必要です')
+  }
+
+  try {
+    const payload = verifyToken(token)
+    return payload
+  } catch (error) {
+    throw ApiError.unauthorized('トークンが無効です')
+  }
+}
+
+/**
+ * 特定のロールのみがアクセスできることを確認する
+ * @param payload - JWTペイロード
+ * @param allowedRoles - 許可されるロールの配列
+ * @throws {ApiError} ユーザーのロールが許可されていない場合
+ */
+export function requireRole(
+  payload: JWTPayload,
+  allowedRoles: Array<'sales' | 'manager'>
+): void {
+  if (!allowedRoles.includes(payload.role)) {
+    throw ApiError.forbidden('この操作を実行する権限がありません')
+  }
+}
+
+/**
  * JWTトークンを検証し、ユーザー情報をリクエストに追加する認証ミドルウェア
  *
  * このミドルウェアは以下を実行します：
@@ -60,10 +96,9 @@ export function authenticateRequest(
 
     if (!token) {
       const error = ApiError.unauthorized('認証トークンが提供されていません')
-      return NextResponse.json(
-        errorResponse(error.code, error.message),
-        { status: error.statusCode }
-      )
+      return NextResponse.json(errorResponse(error.code, error.message), {
+        status: error.statusCode,
+      })
     }
 
     // トークンの検証
@@ -71,11 +106,11 @@ export function authenticateRequest(
     try {
       payload = verifyToken(token)
     } catch (err) {
-      const error = ApiError.unauthorized('認証トークンが無効または期限切れです')
-      return NextResponse.json(
-        errorResponse(error.code, error.message),
-        { status: error.statusCode }
-      )
+      const error =
+        ApiError.unauthorized('認証トークンが無効または期限切れです')
+      return NextResponse.json(errorResponse(error.code, error.message), {
+        status: error.statusCode,
+      })
     }
 
     // ユーザー情報をリクエストに追加
@@ -92,10 +127,9 @@ export function authenticateRequest(
   } catch (error) {
     // 予期しないエラー
     const apiError = ApiError.internalError('認証処理中にエラーが発生しました')
-    return NextResponse.json(
-      errorResponse(apiError.code, apiError.message),
-      { status: apiError.statusCode }
-    )
+    return NextResponse.json(errorResponse(apiError.code, apiError.message), {
+      status: apiError.statusCode,
+    })
   }
 }
 
