@@ -1,8 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { NextRequest, NextResponse } from 'next/server'
 import { extractToken, authenticateRequest, withAuth } from '../auth'
 import { generateToken } from '@/lib/auth'
 import type { JWTPayload } from '@/types/auth'
+import type { AuthenticatedRequest } from '@/types/next'
 
 describe('extractToken', () => {
   it('should extract token from valid Bearer authorization header', () => {
@@ -109,8 +110,6 @@ describe('authenticateRequest', () => {
   })
 
   it('should return 401 error when token is expired', () => {
-    // 期限切れのトークンを生成（-1秒で即座に期限切れ）
-    const expiredToken = generateToken(validPayload)
     // Note: 実際の期限切れテストは時間を操作する必要があるため、
     // ここでは不正なトークンで代用
     const request = new NextRequest('http://localhost/api/test', {
@@ -139,8 +138,9 @@ describe('authenticateRequest', () => {
 
     if (!(result instanceof NextResponse)) {
       // userプロパティがリクエストに追加されているか確認
-      expect(result.request.user).toBeDefined()
-      expect(result.request.user).toMatchObject(validPayload)
+      const authRequest = result.request as AuthenticatedRequest
+      expect(authRequest.user).toBeDefined()
+      expect(authRequest.user).toMatchObject(validPayload)
     }
   })
 

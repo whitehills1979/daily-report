@@ -80,7 +80,10 @@ export function requireAuthMulti(handlers: {
   PATCH?: AuthenticatedHandler
   DELETE?: AuthenticatedHandler
 }): Record<string, (request: NextRequest) => Promise<NextResponse>> {
-  const result: Record<string, (request: NextRequest) => Promise<NextResponse>> = {}
+  const result: Record<
+    string,
+    (request: NextRequest) => Promise<NextResponse>
+  > = {}
 
   if (handlers.GET) {
     result.GET = requireAuth(handlers.GET)

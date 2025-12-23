@@ -19,7 +19,7 @@ describe('requireAuth', () => {
       },
     })
 
-    const handler = vi.fn(async (req, user) => {
+    const handler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ success: true, userId: user.userId })
     })
 
@@ -28,7 +28,10 @@ describe('requireAuth', () => {
 
     // ハンドラーが呼ばれたことを確認
     expect(handler).toHaveBeenCalledTimes(1)
-    expect(handler).toHaveBeenCalledWith(request, expect.objectContaining(validPayload))
+    expect(handler).toHaveBeenCalledWith(
+      request,
+      expect.objectContaining(validPayload)
+    )
 
     // レスポンスの確認
     expect(response).toBeInstanceOf(NextResponse)
@@ -40,7 +43,7 @@ describe('requireAuth', () => {
   it('should return 401 error when token is missing', async () => {
     const request = new NextRequest('http://localhost/api/test')
 
-    const handler = vi.fn(async (req, user) => {
+    const handler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ success: true })
     })
 
@@ -64,7 +67,7 @@ describe('requireAuth', () => {
       },
     })
 
-    const handler = vi.fn(async (req, user) => {
+    const handler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ success: true })
     })
 
@@ -91,7 +94,7 @@ describe('requireAuth', () => {
       },
     })
 
-    const handler = vi.fn(async (req, user) => {
+    const handler = vi.fn(async (_req, _user) => {
       return NextResponse.json({
         userId: user.userId,
         email: user.email,
@@ -103,7 +106,10 @@ describe('requireAuth', () => {
     const response = await wrappedHandler(request)
 
     // 正しいユーザー情報が渡されたか確認
-    expect(handler).toHaveBeenCalledWith(request, expect.objectContaining(managerPayload))
+    expect(handler).toHaveBeenCalledWith(
+      request,
+      expect.objectContaining(managerPayload)
+    )
 
     const jsonData = await response.json()
     expect(jsonData.userId).toBe(2)
@@ -120,7 +126,7 @@ describe('requireAuth', () => {
     })
 
     // 同期的にNextResponseを返すハンドラー
-    const handler = vi.fn((req, user) => {
+    const handler = vi.fn((_req, _user) => {
       return NextResponse.json({ sync: true })
     })
 
@@ -148,7 +154,7 @@ describe('requireAuthMulti', () => {
       },
     })
 
-    const getHandler = vi.fn(async (req, user) => {
+    const getHandler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ method: 'GET', userId: user.userId })
     })
 
@@ -157,7 +163,10 @@ describe('requireAuthMulti', () => {
     expect(GET).toBeDefined()
     const response = await GET!(request)
 
-    expect(getHandler).toHaveBeenCalledWith(request, expect.objectContaining(validPayload))
+    expect(getHandler).toHaveBeenCalledWith(
+      request,
+      expect.objectContaining(validPayload)
+    )
     const jsonData = await response.json()
     expect(jsonData.method).toBe('GET')
     expect(jsonData.userId).toBe(1)
@@ -172,7 +181,7 @@ describe('requireAuthMulti', () => {
       },
     })
 
-    const postHandler = vi.fn(async (req, user) => {
+    const postHandler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ method: 'POST', email: user.email })
     })
 
@@ -181,7 +190,10 @@ describe('requireAuthMulti', () => {
     expect(POST).toBeDefined()
     const response = await POST!(request)
 
-    expect(postHandler).toHaveBeenCalledWith(request, expect.objectContaining(validPayload))
+    expect(postHandler).toHaveBeenCalledWith(
+      request,
+      expect.objectContaining(validPayload)
+    )
     const jsonData = await response.json()
     expect(jsonData.method).toBe('POST')
     expect(jsonData.email).toBe('test@example.com')
@@ -190,13 +202,13 @@ describe('requireAuthMulti', () => {
   it('should wrap multiple handlers with authentication', async () => {
     const token = generateToken(validPayload)
 
-    const getHandler = vi.fn(async (req, user) => {
+    const getHandler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ method: 'GET' })
     })
-    const postHandler = vi.fn(async (req, user) => {
+    const postHandler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ method: 'POST' })
     })
-    const deleteHandler = vi.fn(async (req, user) => {
+    const deleteHandler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ method: 'DELETE' })
     })
 
@@ -235,7 +247,7 @@ describe('requireAuthMulti', () => {
   })
 
   it('should only create handlers for provided methods', () => {
-    const getHandler = vi.fn(async (req, user) => {
+    const getHandler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ method: 'GET' })
     })
 
@@ -251,10 +263,10 @@ describe('requireAuthMulti', () => {
   it('should return 401 for all methods when token is missing', async () => {
     const request = new NextRequest('http://localhost/api/test')
 
-    const getHandler = vi.fn(async (req, user) => {
+    const getHandler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ success: true })
     })
-    const postHandler = vi.fn(async (req, user) => {
+    const postHandler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ success: true })
     })
 

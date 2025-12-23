@@ -67,10 +67,9 @@ export function requireRole(
     // 役割チェック
     if (!rolesArray.includes(user.role)) {
       const error = ApiError.forbidden('この操作を実行する権限がありません')
-      return NextResponse.json(
-        errorResponse(error.code, error.message),
-        { status: error.statusCode }
-      )
+      return NextResponse.json(errorResponse(error.code, error.message), {
+        status: error.statusCode,
+      })
     }
 
     // 認証・認可成功時はハンドラーを実行
@@ -151,7 +150,10 @@ export function requireRoleMulti(
     DELETE?: RoleBasedHandler
   }
 ): Record<string, (request: NextRequest) => Promise<NextResponse>> {
-  const result: Record<string, (request: NextRequest) => Promise<NextResponse>> = {}
+  const result: Record<
+    string,
+    (request: NextRequest) => Promise<NextResponse>
+  > = {}
 
   if (handlers.GET) {
     result.GET = requireRole(allowedRoles, handlers.GET)

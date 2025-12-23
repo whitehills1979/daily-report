@@ -30,14 +30,17 @@ describe('requireRole', () => {
       },
     })
 
-    const handler = vi.fn(async (req, user) => {
+    const handler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ success: true, role: user.role })
     })
 
     const wrappedHandler = requireRole('manager', handler)
     const response = await wrappedHandler(request)
 
-    expect(handler).toHaveBeenCalledWith(request, expect.objectContaining(managerPayload))
+    expect(handler).toHaveBeenCalledWith(
+      request,
+      expect.objectContaining(managerPayload)
+    )
     const jsonData = await response.json()
     expect(jsonData.success).toBe(true)
     expect(jsonData.role).toBe('manager')
@@ -51,7 +54,7 @@ describe('requireRole', () => {
       },
     })
 
-    const handler = vi.fn(async (req, user) => {
+    const handler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ success: true })
     })
 
@@ -72,7 +75,7 @@ describe('requireRole', () => {
   it('should return 401 error when token is missing', async () => {
     const request = new NextRequest('http://localhost/api/test')
 
-    const handler = vi.fn(async (req, user) => {
+    const handler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ success: true })
     })
 
@@ -87,7 +90,7 @@ describe('requireRole', () => {
     const salesToken = generateToken(salesPayload)
     const managerToken = generateToken(managerPayload)
 
-    const handler = vi.fn(async (req, user) => {
+    const handler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ role: user.role })
     })
 
@@ -120,7 +123,7 @@ describe('requireRole', () => {
       },
     })
 
-    const handler = vi.fn(async (req, user) => {
+    const handler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ success: true })
     })
 
@@ -153,7 +156,7 @@ describe('requireManager', () => {
       },
     })
 
-    const handler = vi.fn(async (req, user) => {
+    const handler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ data: 'manager-only-data' })
     })
 
@@ -174,7 +177,7 @@ describe('requireManager', () => {
       },
     })
 
-    const handler = vi.fn(async (req, user) => {
+    const handler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ data: 'manager-only-data' })
     })
 
@@ -207,7 +210,7 @@ describe('requireSales', () => {
       },
     })
 
-    const handler = vi.fn(async (req, user) => {
+    const handler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ data: 'sales-data' })
     })
 
@@ -228,7 +231,7 @@ describe('requireSales', () => {
       },
     })
 
-    const handler = vi.fn(async (req, user) => {
+    const handler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ data: 'sales-data' })
     })
 
@@ -256,10 +259,10 @@ describe('requireRoleMulti', () => {
   it('should wrap multiple handlers with role-based access control', async () => {
     const managerToken = generateToken(managerPayload)
 
-    const getHandler = vi.fn(async (req, user) => {
+    const getHandler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ method: 'GET', role: user.role })
     })
-    const deleteHandler = vi.fn(async (req, user) => {
+    const deleteHandler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ method: 'DELETE', role: user.role })
     })
 
@@ -292,7 +295,7 @@ describe('requireRoleMulti', () => {
   it('should deny access when user does not have required role', async () => {
     const salesToken = generateToken(salesPayload)
 
-    const getHandler = vi.fn(async (req, user) => {
+    const getHandler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ success: true })
     })
 
@@ -313,7 +316,7 @@ describe('requireRoleMulti', () => {
     const salesToken = generateToken(salesPayload)
     const managerToken = generateToken(managerPayload)
 
-    const postHandler = vi.fn(async (req, user) => {
+    const postHandler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ role: user.role })
     })
 
@@ -343,7 +346,7 @@ describe('requireRoleMulti', () => {
   })
 
   it('should only create handlers for provided methods', () => {
-    const getHandler = vi.fn(async (req, user) => {
+    const getHandler = vi.fn(async (_req, _user) => {
       return NextResponse.json({ method: 'GET' })
     })
 
