@@ -3,6 +3,7 @@ import { requireManager } from '@/middleware/require-role'
 import { successResponse, errorResponse } from '@/lib/api-response'
 import { ApiError } from '@/lib/api-error'
 import { prisma } from '@/lib/prisma'
+import { Prisma } from '@prisma/client'
 import { ZodError } from 'zod'
 import { hashPassword } from '@/lib/auth'
 import { updateUserSchema, type UserResponse } from '@/schemas/user.schema'
@@ -134,7 +135,7 @@ export const PUT = requireManager(
       }
 
       // 更新データを構築
-      const updateData: any = {}
+      const updateData: Prisma.UserUpdateInput = {}
       if (validatedData.name !== undefined) updateData.name = validatedData.name
       if (validatedData.email !== undefined)
         updateData.email = validatedData.email

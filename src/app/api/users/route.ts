@@ -4,7 +4,7 @@ import { successResponse, errorResponse } from '@/lib/api-response'
 import { ApiError } from '@/lib/api-error'
 import { prisma } from '@/lib/prisma'
 import { ZodError } from 'zod'
-import { hashPassword } from '@/lib/password'
+import { hashPassword } from '@/lib/auth'
 import {
   createUserSchema,
   userSearchSchema,
@@ -41,6 +41,8 @@ export const GET = requireManager(async (request: NextRequest) => {
       whereClause.role = role
     }
     if (department) {
+      // 注意: mode: 'insensitive' はPostgreSQLでは動作しますが、
+      // MySQLやSQLiteでは動作しない可能性があります
       whereClause.department = { contains: department, mode: 'insensitive' }
     }
 
