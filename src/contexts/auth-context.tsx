@@ -5,10 +5,16 @@
  * ユーザー情報とトークンの状態管理、ログイン・ログアウト処理を提供
  */
 
-import React, { createContext, useState, useEffect, useCallback } from 'react'
+import React, {
+  createContext,
+  useState,
+  useEffect,
+  useCallback,
+  useMemo,
+} from 'react'
 import { useRouter } from 'next/navigation'
-import { LoginResponse } from '@/schemas/auth'
-import { setToken, removeToken, getToken } from '@/lib/api-client'
+import { LoginResponse, MeResponse } from '@/schemas/auth'
+import { setToken, removeToken, getToken, get } from '@/lib/api-client'
 import { post } from '@/lib/api-client'
 
 /**
@@ -61,37 +67,48 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const router = useRouter()
 
   /**
-   * トークンからユーザー情報を取得
-   */
-  const fetchUser = useCallback(async () => {
-    const token = getToken()
-    if (!token) {
-      setIsLoading(false)
-      return
-    }
-
-    try {
-      // /api/auth/me エンドポイントからユーザー情報を取得
-      const userData = await post<User>('/api/auth/me', undefined, {
-        auth: true,
-        redirect: false,
-      })
-      setUser(userData)
-    } catch (error) {
-      // トークンが無効な場合は削除
-      removeToken()
-      setUser(null)
-    } finally {
-      setIsLoading(false)
-    }
-  }, [])
-
-  /**
    * 初期化時にトークンからユーザー情報を取得
    */
   useEffect(() => {
+    let isMounted = true
+
+    const fetchUser = async () => {
+      const token = getToken()
+      if (!token) {
+        if (isMounted) setIsLoading(false)
+        return
+      }
+
+      try {
+        // /api/auth/me エンドポイントからユーザー情報を取得
+        const meData = await get<MeResponse>('/api/auth/me', {
+          auth: true,
+          redirect: false,
+        })
+        // MeResponse から User 型に変換（created_at を除外）
+        const userData: User = {
+          id: meData.id,
+          name: meData.name,
+          email: meData.email,
+          role: meData.role,
+          department: meData.department,
+        }
+        if (isMounted) setUser(userData)
+      } catch (error) {
+        // トークンが無効な場合は削除
+        removeToken()
+        if (isMounted) setUser(null)
+      } finally {
+        if (isMounted) setIsLoading(false)
+      }
+    }
+
     fetchUser()
-  }, [fetchUser])
+
+    return () => {
+      isMounted = false
+    }
+  }, [])
 
   /**
    * ログイン処理
@@ -162,13 +179,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, [router])
 
-  const value: AuthContextType = {
-    user,
-    isAuthenticated: !!user,
-    isLoading,
-    login,
-    logout,
-  }
+  const value: AuthContextType = useMemo(
+    () => ({
+      user,
+      isAuthenticated: !!user,
+      isLoading,
+      login,
+      logout,
+    }),
+    [user, isLoading, login, logout]
+  )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

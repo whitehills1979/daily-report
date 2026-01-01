@@ -66,7 +66,7 @@ export function ProtectedRoute({
       // 権限がない場合はダッシュボードにリダイレクト
       router.push('/dashboard')
     }
-  }, [isAuthenticated, isLoading, user, requiredRole, router])
+  }, [isAuthenticated, isLoading, user?.role, requiredRole, router])
 
   // ローディング中の表示
   if (isLoading) {

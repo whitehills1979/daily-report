@@ -93,16 +93,17 @@ describe('AuthContext', () => {
     })
 
     it('should fetch user data when token exists', async () => {
-      const mockUser = {
+      const mockMeResponse = {
         id: 1,
         name: 'Test User',
         email: 'test@example.com',
         role: 'sales' as const,
         department: 'Sales Dept',
+        created_at: new Date().toISOString(),
       }
 
       vi.spyOn(apiClient, 'getToken').mockReturnValue('valid-token')
-      vi.spyOn(apiClient, 'post').mockResolvedValue(mockUser)
+      vi.spyOn(apiClient, 'get').mockResolvedValue(mockMeResponse)
 
       render(
         <AuthProvider>
@@ -127,7 +128,7 @@ describe('AuthContext', () => {
 
     it('should handle invalid token by removing it', async () => {
       vi.spyOn(apiClient, 'getToken').mockReturnValue('invalid-token')
-      vi.spyOn(apiClient, 'post').mockRejectedValue(
+      vi.spyOn(apiClient, 'get').mockRejectedValue(
         new Error('Invalid token')
       )
       const removeTokenSpy = vi.spyOn(apiClient, 'removeToken')
@@ -275,10 +276,11 @@ describe('AuthContext', () => {
         email: 'test@example.com',
         role: 'sales' as const,
         department: null,
+        created_at: new Date().toISOString(),
       }
 
       vi.spyOn(apiClient, 'getToken').mockReturnValue('valid-token')
-      vi.spyOn(apiClient, 'post').mockResolvedValue(mockUser)
+      vi.spyOn(apiClient, 'get').mockResolvedValue(mockUser)
       const removeTokenSpy = vi.spyOn(apiClient, 'removeToken')
 
       let logoutFunction: any
@@ -319,11 +321,12 @@ describe('AuthContext', () => {
         email: 'test@example.com',
         role: 'sales' as const,
         department: null,
+        created_at: new Date().toISOString(),
       }
 
       let callCount = 0
       vi.spyOn(apiClient, 'getToken').mockReturnValue('valid-token')
-      vi.spyOn(apiClient, 'post').mockImplementation(() => {
+      vi.spyOn(apiClient, 'get').mockImplementation(() => {
         callCount++
         if (callCount === 1) {
           // 最初の呼び出し（初期化時のユーザー取得）
@@ -382,10 +385,11 @@ describe('AuthContext', () => {
         email: 'manager@example.com',
         role: 'manager' as const,
         department: 'Management',
+        created_at: new Date().toISOString(),
       }
 
       vi.spyOn(apiClient, 'getToken').mockReturnValue('manager-token')
-      vi.spyOn(apiClient, 'post').mockResolvedValue(mockManager)
+      vi.spyOn(apiClient, 'get').mockResolvedValue(mockManager)
 
       render(
         <AuthProvider>
